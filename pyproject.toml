@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orita-mcp"
+version = "0.1.0"
+description = "MCP server for the Orita scheduling API — let AI agents book, query and cancel appointments"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["scheduling", "booking", "mcp", "model-context-protocol", "ai-agents", "orita"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "httpx>=0.25.0",
+]
+
+[project.urls]
+Homepage = "https://orita.online/developers"
+Repository = "https://github.com/Alkilo-do/orita-mcp"
+Documentation = "https://orita.online/developers"
+
+[project.scripts]
+orita-mcp = "orita_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["orita_mcp*"]

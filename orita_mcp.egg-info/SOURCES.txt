@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+orita_mcp/__init__.py
+orita_mcp/__main__.py
+orita_mcp/server.py
+orita_mcp.egg-info/PKG-INFO
+orita_mcp.egg-info/SOURCES.txt
+orita_mcp.egg-info/dependency_links.txt
+orita_mcp.egg-info/entry_points.txt
+orita_mcp.egg-info/requires.txt
+orita_mcp.egg-info/top_level.txt

@@ -1,0 +1,45 @@
+name: orita
+displayName: Orita Scheduling
+description: Book, reschedule and cancel appointments via AI agents using the Orita scheduling API
+version: 0.1.0
+homepage: https://orita.online/developers
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - apiKey
+    properties:
+      apiKey:
+        type: string
+        title: Orita API Key
+        description: Your Orita API key. Get it at https://orita.online/dashboard → API Keys.
+      baseUrl:
+        type: string
+        title: Base URL
+        description: Override the Orita base URL (default https://orita.online). Leave blank for production.
+        default: https://orita.online
+  commandFunction: |
+    (config) => ({
+      command: "python",
+      args: ["-m", "orita_mcp"],
+      env: {
+        ORITA_API_KEY: config.apiKey,
+        ...(config.baseUrl ? { ORITA_BASE_URL: config.baseUrl } : {}),
+      },
+    })
+
+tools:
+  - name: orita_get_event_types
+    description: List all event types configured for the authenticated Orita account.
+  - name: orita_get_slots
+    description: Get available booking slots for an event type on a specific date (YYYY-MM-DD).
+  - name: orita_book_appointment
+    description: Book an appointment for an event type at a specific time slot.
+  - name: orita_get_booking
+    description: Retrieve details of an existing booking by its id.
+  - name: orita_cancel_booking
+    description: Cancel an existing booking with an optional reason.
+  - name: orita_get_profile
+    description: Get the public scheduling profile of an Orita user by username (no auth required).

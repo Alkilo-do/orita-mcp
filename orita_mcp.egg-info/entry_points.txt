@@ -1,0 +1,2 @@
+[console_scripts]
+orita-mcp = orita_mcp.server:main
