@@ -76,6 +76,52 @@ Restart Claude Desktop. You should see the Orita tools available in the tools pa
 
 ---
 
+## Cursor integration
+
+Add to your Cursor MCP config (`.cursor/mcp.json` in your project root, or the global config at `~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "orita": {
+      "command": "python",
+      "args": ["-m", "orita_mcp"],
+      "env": {
+        "ORITA_API_KEY": "orita_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Restart Cursor. The Orita tools will be available in Cursor's agent mode.
+
+---
+
+## Smithery
+
+Install and run `orita-mcp` directly via [Smithery](https://smithery.ai/server/gbueno/orita-mcp) without any local setup:
+
+```bash
+npx -y @smithery/cli install gbueno/orita-mcp --client claude
+```
+
+Or browse the listing and connect directly at **[smithery.ai/server/gbueno/orita-mcp](https://smithery.ai/server/gbueno/orita-mcp)**.
+
+---
+
+## Remote MCP endpoint
+
+Orita also exposes a hosted MCP endpoint — no local install required:
+
+```
+https://orita.online/api/mcp
+```
+
+Add it directly in any MCP-compatible client that supports remote servers.
+
+---
+
 ## Available tools
 
 | Tool | Description | Auth |
