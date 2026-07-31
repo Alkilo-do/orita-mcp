@@ -1,6 +1,8 @@
 # orita-mcp
 
-> MCP server that exposes the [Orita](https://orita.online) scheduling API as tools for AI agents (Claude, GPT, etc.)
+<!-- mcp-name: io.github.Alkilo-do/orita-provider-resolution -->
+
+> MCP server that exposes the [Orita](https://orita.online) Provider Resolution API as tools for AI agents (Claude, Cursor, and compatible agents).
 
 [![PyPI](https://img.shields.io/pypi/v/orita-mcp)](https://pypi.org/project/orita-mcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
