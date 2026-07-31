@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "orita-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP server for the Orita scheduling API — let AI agents book, query and cancel appointments"
 readme = "README.md"
 requires-python = ">=3.10"
