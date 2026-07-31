@@ -1,8 +1,13 @@
-name: orita
-displayName: Orita Scheduling
-description: Book, reschedule and cancel appointments via AI agents using the Orita scheduling API
-version: 0.1.0
-homepage: https://orita.online/developers
+name: io.github.Alkilo-do/orita-provider-resolution
+displayName: Orita Provider Resolution
+description: >
+  Search an application's own provider network, apply eligibility rules,
+  resolve real-time availability, return ranked explained options, and
+  safely confirm bookings. Supports resolve → hold → confirm workflow.
+version: 0.1.1
+homepage: https://orita.online/developers/mcp
+documentationUrl: https://orita.online/developers/mcp
+license: MIT
 
 startCommand:
   type: stdio
@@ -14,11 +19,14 @@ startCommand:
       apiKey:
         type: string
         title: Orita API Key
-        description: Your Orita API key. Get it at https://orita.online/dashboard → API Keys.
+        description: >
+          Your Orita platform API key. Get one free at
+          https://orita.online/sign-up — no credit card required.
+        format: password
       baseUrl:
         type: string
         title: Base URL
-        description: Override the Orita base URL (default https://orita.online). Leave blank for production.
+        description: Override the Orita API base URL. Leave blank for production.
         default: https://orita.online
   commandFunction: |
     (config) => ({
@@ -30,16 +38,107 @@ startCommand:
       },
     })
 
+remoteServer:
+  url: https://orita.online/api/mcp
+  transport: streamable-http
+  authHeader: Authorization
+  authHeaderFormat: "Bearer {apiKey}"
+  note: >
+    The remote MCP server requires Accept: application/json, text/event-stream.
+    MCP-compatible clients (Claude Desktop, Cursor) send this automatically.
+
 tools:
-  - name: orita_get_event_types
-    description: List all event types configured for the authenticated Orita account.
-  - name: orita_get_slots
-    description: Get available booking slots for an event type on a specific date (YYYY-MM-DD).
-  - name: orita_book_appointment
-    description: Book an appointment for an event type at a specific time slot.
-  - name: orita_get_booking
-    description: Retrieve details of an existing booking by its id.
-  - name: orita_cancel_booking
-    description: Cancel an existing booking with an optional reason.
-  - name: orita_get_profile
-    description: Get the public scheduling profile of an Orita user by username (no auth required).
+  - name: resolve_scheduling
+    description: >
+      Search the authenticated application's own provider network and return
+      eligible provider-time options. Use when the provider is not already
+      known. Applies structured eligibility rules (language, modality,
+      specialty, accepting-new-clients) and availability checks. Returns
+      ranked options with scores, matched constraints, and plain-language
+      reasons. This tool does not create or modify a booking.
+
+  - name: get_resolution
+    description: >
+      Retrieve a stored scheduling resolution, including ranked options,
+      matched constraints, ranking factors, exclusion reasons, warnings, and
+      expiration status. This tool does not modify external state.
+
+  - name: hold_scheduling_option
+    description: >
+      Temporarily reserve one option from an existing scheduling resolution.
+      Use before final customer approval when the application needs to reduce
+      the risk that the selected slot becomes unavailable. Default hold: 2
+      minutes. Maximum: 10 minutes. This tool does not create a confirmed
+      booking.
+
+  - name: release_scheduling_option
+    description: >
+      Release a previously held scheduling option. Use when the customer
+      rejects the option, changes requirements, or abandons the flow.
+
+  - name: confirm_scheduling_resolution
+    description: >
+      Confirm one previously resolved provider-time option and create the
+      booking. This changes external state. Call only after the customer
+      approves the provider, service, date, time, timezone, and customer
+      details. Requires an idempotency key and revalidates availability
+      before confirmation.
+
+  - name: reschedule_booking
+    description: >
+      Move an existing booking to a new approved date and time. This changes
+      external state and requires customer approval.
+
+  - name: cancel_booking
+    description: >
+      Cancel an existing booking. This changes external state and requires
+      explicit customer approval.
+
+  - name: get_booking
+    description: >
+      Retrieve details of an existing booking by its ID. This tool does not
+      modify external state.
+
+  - name: list_professionals
+    description: >
+      List professionals linked to this account. For platform accounts,
+      returns all linked providers with their attributes (languages,
+      modalities, specialties, accepting-new-clients status). Does not modify
+      external state.
+
+  - name: get_slots
+    description: >
+      Get available booking time slots for a known provider on a given date.
+      Use when the application already knows which provider should handle the
+      request. For unknown-provider flows, use resolve_scheduling instead.
+
+  - name: solve_scheduling
+    description: >
+      Find the best available slot for a single known provider across a date
+      range, applying soft preferences. Deprecated alias — prefer
+      resolve_scheduling for multi-provider flows.
+
+agentSafetyNotes:
+  - "resolve_scheduling, get_resolution, list_professionals, get_slots: read-only — no customer approval required."
+  - "hold_scheduling_option: application-defined — customer approval policy determined by the application."
+  - "confirm_scheduling_resolution, reschedule_booking, cancel_booking: require explicit customer approval before calling."
+  - "Never infer missing eligibility data. Pass only what the customer explicitly provided."
+  - "Display provider, service, time, timezone, and cancellation policy before confirmation."
+  - "Use idempotency keys for every mutating request."
+
+categories:
+  - scheduling
+  - booking
+  - healthcare
+  - ai-agents
+  - provider-matching
+
+tags:
+  - provider-resolution
+  - multi-provider-scheduling
+  - booking
+  - healthcare
+  - behavioral-health
+  - ai-receptionist
+  - eligibility
+  - availability

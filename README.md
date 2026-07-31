@@ -2,172 +2,97 @@
 
 <!-- mcp-name: io.github.Alkilo-do/orita-provider-resolution -->
 
-> MCP server that exposes the [Orita](https://orita.online) Provider Resolution API as tools for AI agents (Claude, Cursor, and compatible agents).
+> MCP server for the [Orita Provider Resolution API](https://orita.online) — lets AI agents search a provider network, apply eligibility rules, resolve availability, and safely confirm bookings.
 
 [![PyPI](https://img.shields.io/pypi/v/orita-mcp)](https://pypi.org/project/orita-mcp/)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-listed-teal)](https://registry.modelcontextprotocol.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## What is this?
+## What this does
 
-`orita-mcp` implements the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) so that AI agents can:
+Orita resolves the provider-routing problem:
 
-- **Look up event types** and available booking slots
-- **Book appointments** on behalf of users
-- **Retrieve or cancel bookings**
-- **Browse public profiles** (no auth needed)
+> Your application knows what service the customer needs, but not which professional is eligible and available.
 
-All powered by the [Orita scheduling API](https://orita.online/developers).
+This MCP server exposes that resolution workflow as tools that AI agents (Claude, Cursor, and compatible clients) can call natively.
 
----
+## Primary workflow
 
-## Install
+```
+resolve_scheduling          → search provider network, return ranked options
+hold_scheduling_option      → temporarily reserve the selected slot
+confirm_scheduling_resolution → confirm booking after customer approval
+```
+
+## Tools
+
+| Tool | Description | Modifies state? |
+|------|-------------|-----------------|
+| `resolve_scheduling` | Search provider network, apply eligibility rules, return ranked explained options | No |
+| `get_resolution` | Retrieve resolution with options, exclusions, and expiry | No |
+| `hold_scheduling_option` | Temporarily hold a slot (2 min default, 10 min max) | Application-defined |
+| `release_scheduling_option` | Release a held slot | Yes |
+| `confirm_scheduling_resolution` | Create the booking after customer approval | **Yes — requires approval** |
+| `reschedule_booking` | Move to a new approved slot | **Yes — requires approval** |
+| `cancel_booking` | Cancel a booking | **Yes — requires approval** |
+| `get_booking` | Retrieve booking details | No |
+| `list_professionals` | List providers in the network | No |
+| `get_slots` | Get slots for a known provider | No |
+
+## Agent safety
+
+```
+✓ resolve_scheduling, get_resolution, list_professionals, get_slots
+  → No customer approval required
+
+⚠ hold_scheduling_option
+  → Application-defined
+
+✗ confirm_scheduling_resolution, reschedule_booking, cancel_booking
+  → Require explicit customer approval before calling
+  → Display provider, service, time, timezone, and cancellation policy first
+```
+
+**Never** call `confirm_scheduling_resolution` until the customer has explicitly approved:
+- Provider name
+- Service
+- Date and time
+- Timezone
+- Cancellation policy
+
+## Connect via remote server
+
+```json
+{
+  "mcpServers": {
+    "orita": {
+      "url": "https://orita.online/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_ORITA_API_KEY"
+      }
+    }
+  }
+}
+```
+
+> **Note:** Requests must include `Accept: application/json, text/event-stream`. MCP-compatible clients send this automatically.
+
+## Install via PyPI
 
 ```bash
 pip install orita-mcp
+ORITA_API_KEY=orita_... python -m orita_mcp
 ```
 
----
+## Get an API key
 
-## Configure
+Free at [orita.online/sign-up](https://orita.online/sign-up) — no credit card. 50 active providers, 5,000 resolutions/month included on the free plan.
 
-Get your API key from [orita.online/dashboard](https://orita.online/dashboard) → API Keys.
+## Resources
 
-```bash
-export ORITA_API_KEY=orita_your_key_here
-```
-
-Optional — override the base URL (useful for self-hosted or staging):
-
-```bash
-export ORITA_BASE_URL=https://orita.online   # default
-```
-
----
-
-## Run
-
-```bash
-# stdio mode (for Claude Desktop, Cursor, etc.)
-python -m orita_mcp
-
-# or via the installed script
-orita-mcp
-```
-
----
-
-## Claude Desktop integration
-
-Add to your `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "orita": {
-      "command": "python",
-      "args": ["-m", "orita_mcp"],
-      "env": {
-        "ORITA_API_KEY": "orita_your_key_here"
-      }
-    }
-  }
-}
-```
-
-Restart Claude Desktop. You should see the Orita tools available in the tools panel.
-
----
-
-## Cursor integration
-
-Add to your Cursor MCP config (`.cursor/mcp.json` in your project root, or the global config at `~/.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "orita": {
-      "command": "python",
-      "args": ["-m", "orita_mcp"],
-      "env": {
-        "ORITA_API_KEY": "orita_your_key_here"
-      }
-    }
-  }
-}
-```
-
-Restart Cursor. The Orita tools will be available in Cursor's agent mode.
-
----
-
-## Smithery
-
-Install and run `orita-mcp` directly via [Smithery](https://smithery.ai/server/gbueno/orita-mcp) without any local setup:
-
-```bash
-npx -y @smithery/cli install gbueno/orita-mcp --client claude
-```
-
-Or browse the listing and connect directly at **[smithery.ai/server/gbueno/orita-mcp](https://smithery.ai/server/gbueno/orita-mcp)**.
-
----
-
-## Remote MCP endpoint
-
-Orita also exposes a hosted MCP endpoint — no local install required:
-
-```
-https://orita.online/api/mcp
-```
-
-Add it directly in any MCP-compatible client that supports remote servers.
-
----
-
-## Available tools
-
-| Tool | Description | Auth |
-|------|-------------|------|
-| `orita_get_event_types` | List all event types for your account | ✅ API key |
-| `orita_get_slots` | Get available slots for an event type on a date | ✅ API key |
-| `orita_book_appointment` | Book an appointment (name, email, time) | ✅ API key |
-| `orita_get_booking` | Retrieve booking details by id | ✅ API key |
-| `orita_cancel_booking` | Cancel a booking with optional reason | ✅ API key |
-| `orita_get_profile` | Get a public Orita profile by username | 🌐 Public |
-
----
-
-## Example usage (in Claude)
-
-```
-What event types do I have set up?
-→ orita_get_event_types()
-
-Show me available slots for event type "abc123" on August 15, 2025
-→ orita_get_slots("abc123", "2025-08-15")
-
-Book the 10:00am slot for John Doe (john@example.com)
-→ orita_book_appointment(...)
-
-Cancel booking xyz789
-→ orita_cancel_booking("xyz789", reason="Schedule conflict")
-```
-
----
-
-## Development
-
-```bash
-git clone https://github.com/Alkilo-do/orita-mcp
-cd orita-mcp
-pip install -e ".[dev]"
-python -m orita_mcp
-```
-
----
-
-## License
-
-MIT — see [LICENSE](LICENSE).
-
-Built by the [Orita](https://orita.online) team.
+- [Developer docs](https://orita.online/developers)
+- [MCP documentation](https://orita.online/developers/mcp.md)
+- [API reference](https://orita.online/developers/reference)
+- [OpenAPI spec](https://orita.online/openapi.json)
+- [Node.js SDK](https://github.com/Alkilo-do/orita-node)
+- [Python SDK](https://github.com/Alkilo-do/orita-python)
